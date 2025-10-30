@@ -1,11 +1,124 @@
-<p style="text-align:center; margin-top:40px;">
-  <a href="Council_Member_Ages_ByRace_1957plus_Interactive.html">
-    ➡️ View Age of Council Members by Race (1957–Present)
-  </a>
-</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cincinnati City Council Data Visualizations</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #ffffff;
+      color: #222;
+      margin: 0;
+      padding-top: 60px; /* offset for fixed navbar */
+      text-align: center;
+    }
 
-<nav style="background-color:#f6f6f6; padding:12px 0; border-bottom:1px solid #ddd; text-align:center; font-family:Arial, sans-serif;">
-  <a href="index.html" style="margin:0 15px; color:#333; text-decoration:none; font-weight:bold;">🏠 Home</a>
-  |
-  <a href="Council_Member_Ages_ByRace_1957plus_Interactive.html" style="margin:0 15px; color:#333; text-decoration:none;">📊 Age by Race</a>
-</nav>
+    /* Persistent navigation bar */
+    nav {
+      background-color: #f6f6f6;
+      border-bottom: 1px solid #ddd;
+      padding: 12px 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+      font-family: Arial, sans-serif;
+    }
+
+    nav a {
+      margin: 0 15px;
+      color: #333;
+      text-decoration: none;
+      font-weight: bold;
+      transition: color 0.2s;
+    }
+
+    nav a:hover {
+      color: #0077cc;
+    }
+
+    header {
+      padding: 20px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    main {
+      padding: 40px 10%;
+    }
+
+    h2 {
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+
+    p {
+      color: #555;
+      margin-top: 0;
+      margin-bottom: 25px;
+    }
+
+    a.chart-link {
+      display: inline-block;
+      text-decoration: none;
+      color: #0066cc;
+      background-color: #f2f2f2;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-weight: bold;
+      border: 1px solid #ddd;
+      transition: background-color 0.2s;
+    }
+
+    a.chart-link:hover {
+      background-color: #e6e6e6;
+    }
+
+    footer {
+      margin-top: 40px;
+      padding: 15px;
+      font-size: 14px;
+      color: gray;
+      border-top: 1px solid #eee;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Fixed top navigation bar -->
+  <nav>
+    <a href="index.html">🏠 Home</a> |
+    <a href="Council_Member_Ages_Since1957_Interactive_AvgNote.html">📊 Age Over Time</a> |
+    <a href="Council_Member_Ages_ByRace_1957plus_Interactive.html">🎨 Age by Race</a>
+  </nav>
+
+  <header>
+    <h1>Cincinnati City Council Data Visualizations</h1>
+    <p>Interactive analyses of election history and council composition</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>🕓 Age of Council Members Over Time</h2>
+      <p>Explore how the average age of Cincinnati City Council members has changed since 1957.</p>
+      <a class="chart-link" href="Council_Member_Ages_Since1957_Interactive_AvgNote.html">View Chart</a>
+    </section>
+
+    <section>
+      <h2>🎨 Age of Council Members by Race</h2>
+      <p>Compare the ages of Black and White council members from 1957–present.</p>
+      <a class="chart-link" href="Council_Member_Ages_ByRace_1957plus_Interactive.html">View Chart</a>
+    </section>
+  </main>
+
+  <footer>
+    Data Source: Cincinnati Council Election Records (1957–2023)
+  </footer>
+</body>
+</html>
