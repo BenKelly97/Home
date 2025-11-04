@@ -3,63 +3,52 @@
 <head>
 <meta charset="utf-8">
 <title>Election Prediction Quiz</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <style>
   body{
     font-family:Arial,Helvetica,sans-serif;margin:0;background:#fafafa;
-    display:flex;flex-direction:column;align-items:center;padding:30px;
+    display:flex;flex-direction:column;align-items:center;padding:20px;
   }
-  .container{display:flex;gap:40px;}
-  .slots,.bank{
+  .container{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+  .panel{
     background:#fff;border:1px solid #ccc;border-radius:8px;
-    box-shadow:0 2px 6px rgba(0,0,0,0.05);padding:20px;
-    display:flex;flex-direction:column;
+    box-shadow:0 2px 6px rgba(0,0,0,.05);padding:16px;display:flex;flex-direction:column
   }
-  .slots{
-    width:220px;
-    max-height:550px;
-    overflow-y:auto;
+  .slots.panel{width:260px;max-height:560px;overflow:auto}
+  .bank.panel{width:300px;max-height:560px;overflow:auto}
+  h2{margin:0 0 10px;font-size:18px;text-align:center}
+  ul{list-style:none;margin:0;padding:0}
+
+  /* Ranks list (26 rows) */
+  .ranks li{
+    border:1px dashed #ccc;border-radius:6px;background:#fdfdfd;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:6px 8px;margin:6px 0;min-height:36px;gap:8px
   }
-  .bank{
-    width:280px;
-    max-height:550px;
-    overflow-y:auto;
-  }
-  h2{margin-top:0;font-size:18px;text-align:center;}
-  .slot{
-    border:1px dashed #ccc;border-radius:5px;padding:6px;margin:4px 0;
-    height:30px;display:flex;align-items:center;justify-content:center;
-    background:#fdfdfd;transition:background 0.2s;
-  }
-  .slot.over{background:#e6f0ff;}
-  .slot.locked{
-    background:linear-gradient(#fff7c2,#ffef8a);
-    border:1px solid #e0b000;
-    font-weight:bold;
-  }
+  .ranks li.locked{background:linear-gradient(#fff7c2,#ffef8a);border:1px solid #e0b000;font-weight:700}
+  .rank-num{color:#555;min-width:22px;text-align:right;margin-right:6px}
+  .slot-body{flex:1;display:flex;align-items:center;gap:6px;min-height:24px}
+
+  /* Candidate pills */
   .candidate{
-    border:1px solid #ccc;border-radius:5px;padding:4px 8px;margin:4px 0;
-    background:#f5f5f5;cursor:grab;
-  }
-  .candidate.dragging{opacity:0.5;}
-  #reset,#submit{
-    margin-top:10px;width:100%;padding:6px;border:1px solid #ccc;
-    background:#eee;border-radius:6px;cursor:pointer;
+    border:1px solid #ccc;border-radius:14px;background:#f5f5f5;
+    padding:4px 10px;white-space:nowrap;cursor:grab;touch-action:none;display:inline-block;
   }
 
-  #messageBox{
-    position:fixed;top:40px;left:50%;transform:translateX(-50%);
-    font-size:28px;font-weight:bold;opacity:0;
-    transition:opacity 0.5s ease;pointer-events:none;
-  }
-  #messageBox.show{opacity:1;}
+  /* Bank list holds candidates directly as children */
+  .bank-list{display:flex;flex-direction:column}
+  .bank-list .candidate{margin:6px 0}
 
-  /* Footer note */
-  .footer-note{
-    margin-top:25px;
-    font-size:14px;
-    color:#555;
-    text-align:center;
+  .btn{margin-top:8px;width:100%;padding:8px;border:1px solid #ccc;background:#eee;border-radius:6px;cursor:pointer}
+
+  #messageBox{position:fixed;top:16px;left:50%;transform:translateX(-50%);
+    font-size:22px;font-weight:700;opacity:0;transition:opacity .4s;pointer-events:none}
+  #messageBox.show{opacity:1}
+
+  .footer-note{margin-top:14px;font-size:14px;color:#555;text-align:center}
+
+  @media (max-width:600px){
+    .slots.panel,.bank.panel{width:100%;max-height:60vh}
   }
 </style>
 </head>
@@ -67,129 +56,134 @@
 <div id="messageBox"></div>
 
 <div class="container">
-  <div class="slots">
+  <!-- Left: Ranks -->
+  <div class="panel slots">
     <h2>Your Prediction (1–26)</h2>
-    <div id="slotsArea"></div>
-    <button id="reset">Reset</button>
-    <button id="submit">Submit My Picks</button>
+    <ul id="ranks" class="ranks"></ul>
+    <button id="reset" class="btn">Reset</button>
+    <button id="submit" class="btn">Submit My Picks</button>
   </div>
 
-  <div class="bank">
+  <!-- Right: Bank -->
+  <div class="panel bank">
     <h2>Candidate List</h2>
-    <div id="bankArea"></div>
+    <ul id="bank" class="bank-list"></ul>
   </div>
 </div>
 
 <p class="footer-note">Press “Submit My Picks” to upload your list via Google Forms.</p>
 
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script>
-// ----- Candidate list -----
 const candidates = [
-"Anna Albi","Jeff Cramerding","Mark Jeffreys","Scotty Johnson",
-"Jan-Michele Lemon Kearney","Evan Nolan","Meeka Owens","Seth Walsh",
-"Audricia Brooks","Laketa Cole","Jerry Corbett","Don Driehaus",
-"Kevin Farmer","Gary Favors","Steve Goodin","Ryan James",
-"Dawn Johnson","Liz Keating","Dale Mallory","Linda Matthews",
-"Brandon Nixon","Raffel Prophett","Stephan Pryor",
-"Christopher Smitherman","Donald Washington","Aaron Weiner"
+  "Anna Albi","Jeff Cramerding","Mark Jeffreys","Scotty Johnson",
+  "Jan-Michele Lemon Kearney","Evan Nolan","Meeka Owens","Seth Walsh",
+  "Audricia Brooks","Laketa Cole","Jerry Corbett","Don Driehaus",
+  "Kevin Farmer","Gary Favors","Steve Goodin","Ryan James",
+  "Dawn Johnson","Liz Keating","Dale Mallory","Linda Matthews",
+  "Brandon Nixon","Raffel Prophett","Stephan Pryor",
+  "Christopher Smitherman","Donald Washington","Aaron Weiner"
 ];
 
-const msgBox = document.getElementById('messageBox');
-const slotsArea=document.getElementById('slotsArea');
-const bankArea=document.getElementById('bankArea');
+const ranksUl = document.getElementById('ranks');
+const bankUl  = document.getElementById('bank');
+const msgBox  = document.getElementById('messageBox');
+const GROUP   = { name: 'preds', pull: true, put: true }; // real moves, no clones
 
-// Create 26 numbered slots
-for(let i=1;i<=26;i++){
-  const div=document.createElement('div');
-  div.className='slot';
-  div.dataset.rank=i;
-  div.textContent=i+'.';
-  if(i<=9) div.classList.add('locked');
-  slotsArea.appendChild(div);
-}
+// Build 26 rank rows with slot-body
+for (let i = 1; i <= 26; i++) {
+  const row = document.createElement('li');
+  if (i <= 9) row.classList.add('locked');
+  row.dataset.rank = i;
 
-// Create draggable candidates
-candidates.forEach(name=>{
-  const div=document.createElement('div');
-  div.className='candidate';
-  div.textContent=name;
-  div.draggable=true;
-  bankArea.appendChild(div);
-});
+  const num = document.createElement('span');
+  num.className = 'rank-num';
+  num.textContent = i + '.';
 
-// ----- Drag & Drop -----
-let dragged=null;
-document.addEventListener('dragstart',e=>{
-  if(e.target.classList.contains('candidate')){
-    dragged=e.target;
-    e.target.classList.add('dragging');
-  }
-});
-document.addEventListener('dragend',e=>{
-  if(e.target.classList.contains('candidate')){
-    e.target.classList.remove('dragging');
-  }
-});
-document.addEventListener('dragover',e=>{
-  if(e.target.classList.contains('slot')) e.preventDefault();
-});
-document.addEventListener('dragenter',e=>{
-  if(e.target.classList.contains('slot')) e.target.classList.add('over');
-});
-document.addEventListener('dragleave',e=>{
-  if(e.target.classList.contains('slot')) e.target.classList.remove('over');
-});
-document.addEventListener('drop',e=>{
-  if(e.target.classList.contains('slot')){
-    e.preventDefault();
-    e.target.classList.remove('over');
-    if(dragged){
-      if(e.target.querySelector('.candidate')){
-        bankArea.appendChild(e.target.querySelector('.candidate'));
-      }
-      e.target.textContent = e.target.dataset.rank + '. ';
-      e.target.appendChild(dragged);
+  const slotBody = document.createElement('div');
+  slotBody.className = 'slot-body';
 
-      const rank = parseInt(e.target.dataset.rank);
-      if(rank <= 9) showMessage("I win!", "#28a745");
-      else showMessage("Oh no I lost!", "#d9534f");
+  row.appendChild(num);
+  row.appendChild(slotBody);
+  ranksUl.appendChild(row);
+
+  // Make each slot-body a Sortable container
+  new Sortable(slotBody, {
+    group: GROUP,
+    draggable: '.candidate',
+    sort: false,
+    animation: 150,
+    onAdd: (evt) => {
+      enforceSingle(slotBody, evt.item);
+      signal(row);
     }
-  }
-});
-
-// ----- Message -----
-function showMessage(text,color){
-  msgBox.textContent=text;
-  msgBox.style.color=color;
-  msgBox.classList.add('show');
-  setTimeout(()=>msgBox.classList.remove('show'),1000);
+  });
 }
 
-// ----- Click-to-remove -----
-document.addEventListener('click',e=>{
-  if(e.target.classList.contains('candidate') && e.target.parentElement.classList.contains('slot')){
-    const slot=e.target.parentElement;
-    bankArea.appendChild(e.target);
-    slot.textContent=slot.dataset.rank+'.';
+// Populate bank with real, movable candidates (no li wrappers)
+for (const name of candidates) {
+  const pill = document.createElement('span');
+  pill.className = 'candidate';
+  pill.textContent = name;
+  bankUl.appendChild(pill);
+}
+
+// Sortable for bank — same group, real moves
+new Sortable(bankUl, {
+  group: GROUP,
+  draggable: '.candidate',
+  sort: false,
+  animation: 150
+});
+
+// Ensure one candidate per slot; send any existing back to bank
+function enforceSingle(slotBody, incomingPill) {
+  const existing = slotBody.querySelector('.candidate');
+  if (existing && existing !== incomingPill) {
+    bankUl.appendChild(existing);
+  }
+  slotBody.appendChild(incomingPill);
+}
+
+// Show “I win” / “Oh no I lost!”
+function signal(row) {
+  const rank = parseInt(row.dataset.rank, 10);
+  if (rank <= 9) showMessage("I win!", "#28a745");
+  else showMessage("Oh no I lost!", "#d9534f");
+}
+
+function showMessage(text, color) {
+  msgBox.textContent = text;
+  msgBox.style.color = color;
+  msgBox.classList.add('show');
+  setTimeout(() => msgBox.classList.remove('show'), 900);
+}
+
+// Click-to-remove: move back to bank
+document.addEventListener('click', (e) => {
+  const pill = e.target.closest('.candidate');
+  if (!pill) return;
+  const slotBody = pill.parentElement;
+  if (slotBody && slotBody.classList.contains('slot-body')) {
+    bankUl.appendChild(pill);
   }
 });
 
-// ----- Reset -----
-document.getElementById('reset').onclick=()=>{
-  document.querySelectorAll('.slot .candidate').forEach(c=>bankArea.appendChild(c));
-  document.querySelectorAll('.slot').forEach(s=>s.textContent=s.dataset.rank+'.');
+// Reset
+document.getElementById('reset').onclick = () => {
+  document.querySelectorAll('.slot-body .candidate').forEach(p => bankUl.appendChild(p));
 };
 
-// ----- Submit to Google Form -----
+// Submit to Google Form (one candidate per line)
 const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSdNiSyMjsEWg62XTa3hXsJrYzHLe9mAsF2AUZWP-LAqEv9atg/viewform?usp=pp_url&entry.366340186=";
-document.getElementById('submit').onclick = ()=>{
-  const order = Array.from(document.querySelectorAll('.slot'))
-    .map((s,i)=>{
-      const candidate = s.querySelector('.candidate') ? s.querySelector('.candidate').textContent : "";
-      return `${i+1}. ${candidate}`;
-    })
-    .join("\n");
-  window.open(formURL + encodeURIComponent(order), "_blank");
+document.getElementById('submit').onclick = () => {
+  const lines = [];
+  document.querySelectorAll('#ranks > li').forEach((row, idx) => {
+    const pill = row.querySelector('.slot-body .candidate');
+    lines.push(`${idx+1}. ${pill ? pill.textContent : ""}`);
+  });
+  const payload = lines.join("\n");
+  window.open(formURL + encodeURIComponent(payload), "_blank");
 };
 </script>
 </body>
